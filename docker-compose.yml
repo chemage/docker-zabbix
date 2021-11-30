@@ -5,45 +5,103 @@ networks:
         external: false
 
 services:
-  # docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -d zabbix/zabbix-server-mysql:tag
-  zabbix-server-mysql:
-    image: gitea/gitea:latest
-    container_name: gitea
+  # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
+  zabbixserver:
+    image: zabbix/zabbix-server-mysql:ubuntu-latest
+    container_name: zabbixserver
     environment:
-        - USER_UID=1001 # Enter the UID found from previous command output
-        - USER_GID=100  # Enter the GID found from previous command output
-        - zabbix__database__DB_TYPE=mysql
-        - zabbix__database__HOST=db:3306
-        - zabbix__database__NAME=gitea
-        - zabbix__database__USER=gitea
-        - zabbix__database__PASSWD=gitea
+      - DB_SERVER_HOST=db
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=Zabbix123!
+    restart: always
+    volumes:
+      - ./zabbixserver/alertscripts:/usr/lib/zabbix/alertscripts
+      - ./zabbixserver/externalscripts:/usr/lib/zabbix/externalscripts
+      - ./zabbixserver/modules:/var/lib/zabbix/modules
+      - ./zabbixserver/enc:/var/lib/zabbix/enc
+      - ./zabbixserver/ssh_keys:/var/lib/zabbix/ssh_keys
+      - ./zabbixserver/ssl/certs:/var/lib/zabbix/ssl/certs
+      - ./zabbixserver/ssl/keys:/var/lib/zabbix/ssl/keys
+      - ./zabbixserver/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca
+      # - ./zabbixserver/snmptraps:/var/lib/zabbix/snmptraps
+      - ./zabbixserver/mibs:/var/lib/zabbix/mibs
+      - ./zabbixserver/export:/var/lib/zabbix/export
+    volumes_from:
+      - zabbixsnmptraps
+    networks:
+      - zabbix
+    depends_on:
+      - db
+      - zabbixsnmptraps
+
+  zabbixweb:
+    # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
+    image: zabbix/zabbix-web-apache-mysql:ubuntu-latest
+    container_name: zabbixserver
+    environment:
+      - DB_SERVER_HOST=db
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=Zabbix123!
+      - ZBX_SERVER_HOST=zabbixserver
+      - PHP_TZ="Europe/Zurich"
     restart: always
     networks:
-        - zabbix
+      - zabbix
     volumes:
-        - ./gitea:/data
-        - /etc/timezone:/etc/timezone:ro
-        - /etc/localtime:/etc/localtime:ro
-    ports:
-        - "3000:3000"
-        - "22:22"
+      - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
+      - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
     depends_on:
-        - db
+      - db
 
-  mysql-server-zabbix:
+  zabbixagent2:
+    # https://hub.docker.com/r/zabbix/zabbix-agent2/
+    image: zabbix/zabbix-agent2:ubuntu-latest
+    container_name: zabbixserver
+    environment:
+      - ZBX_HOSTNAME=zabbixagent2
+      - ZBX_SERVER_HOST=zabbixserver
+      - PHP_TZ="Europe/Zurich"
+    restart: always
+    networks:
+      - zabbix
+    volumes:
+      - ./zabbixagent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
+      - ./zabbixagent2/enc:/var/lib/zabbix/enc
+      - ./zabbixagent2/buffer:/var/lib/zabbix/buffer
+    depends_on:
+      - zabbixserver
+
+  zabbixsnmptraps:
+    # https://hub.docker.com/r/zabbix/zabbix-agent2/
+    image: zabbix/zabbix-snmptraps:ubuntu-latest
+    container_name: zabbixsnmptraps
+    environment:
+      - ZBX_HOSTNAME=zabbixagent2
+      - ZBX_SERVER_HOST=zabbixserver
+      - PHP_TZ="Europe/Zurich"
+    restart: always
+    networks:
+      - zabbix
+    ports:
+      - 162:1162/udp
+    volumes:
+      - ./zabbixsnmptraps/snmptraps:/var/lib/zabbix/snmptraps
+      - ./zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
+
+  db:
     image: mysql:latest
     restart: always
     environment:
         - MYSQL_ROOT_PASSWORD=zabbix
         - MYSQL_USER=zabbix
-        - MYSQL_PASSWORD=zabbix
+        - MYSQL_PASSWORD=Zabbix123!
         - MYSQL_DATABASE=zabbix
     networks:
         - zabbix
     volumes:
         - ./mysql:/var/lib/mysql
 
-  phpmyadmin:
+  pma:
     image: phpmyadmin:latest
     restart: always
     ports:
@@ -52,6 +110,8 @@ services:
       - PMA_HOST=db
       - PMA_PORT=3306
       - PMA_USER=zabbix
-      - PMA_PASSWORD=zabbix
+      - PMA_PASSWORD=Zabbix123!
     networks:
       - zabbix
+    depends_on:
+      - db
