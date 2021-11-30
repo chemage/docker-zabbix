@@ -1,0 +1,57 @@
+version: "3"
+
+networks:
+    zabbix:
+        external: false
+
+services:
+  # docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -d zabbix/zabbix-server-mysql:tag
+  zabbix-server-mysql:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+        - USER_UID=1001 # Enter the UID found from previous command output
+        - USER_GID=100  # Enter the GID found from previous command output
+        - zabbix__database__DB_TYPE=mysql
+        - zabbix__database__HOST=db:3306
+        - zabbix__database__NAME=gitea
+        - zabbix__database__USER=gitea
+        - zabbix__database__PASSWD=gitea
+    restart: always
+    networks:
+        - zabbix
+    volumes:
+        - ./gitea:/data
+        - /etc/timezone:/etc/timezone:ro
+        - /etc/localtime:/etc/localtime:ro
+    ports:
+        - "3000:3000"
+        - "22:22"
+    depends_on:
+        - db
+
+  mysql-server-zabbix:
+    image: mysql:latest
+    restart: always
+    environment:
+        - MYSQL_ROOT_PASSWORD=zabbix
+        - MYSQL_USER=zabbix
+        - MYSQL_PASSWORD=zabbix
+        - MYSQL_DATABASE=zabbix
+    networks:
+        - zabbix
+    volumes:
+        - ./mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=zabbix
+      - PMA_PASSWORD=zabbix
+    networks:
+      - zabbix
