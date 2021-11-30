@@ -5,8 +5,8 @@ Running Docker containers for Zabbix.
 - zabbix-server-mysql
 - zabbix-web-apache-mysql
 - zabbix-web-nginx-mysql
-- zabbix-agent
+- zabbix-agent2
+- zabbix-snmptraps
 
 ## Additional components
 - zabbix-proxy
-- zabbix-snmptraps
