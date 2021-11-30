@@ -8,7 +8,6 @@ services:
   # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
   zabbixserver:
     image: zabbix/zabbix-server-mysql:ubuntu-latest
-    container_name: zabbixserver
     environment:
       - DB_SERVER_HOST=db
       - MYSQL_USER=zabbix
@@ -37,7 +36,6 @@ services:
   zabbixweb:
     # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
     image: zabbix/zabbix-web-apache-mysql:ubuntu-latest
-    container_name: zabbixserver
     environment:
       - DB_SERVER_HOST=db
       - MYSQL_USER=zabbix
@@ -47,6 +45,8 @@ services:
     restart: always
     networks:
       - zabbix
+    ports:
+      - 8881:80
     volumes:
       - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
       - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
@@ -56,7 +56,6 @@ services:
   zabbixagent2:
     # https://hub.docker.com/r/zabbix/zabbix-agent2/
     image: zabbix/zabbix-agent2:ubuntu-latest
-    container_name: zabbixserver
     environment:
       - ZBX_HOSTNAME=zabbixagent2
       - ZBX_SERVER_HOST=zabbixserver
@@ -74,7 +73,6 @@ services:
   zabbixsnmptraps:
     # https://hub.docker.com/r/zabbix/zabbix-agent2/
     image: zabbix/zabbix-snmptraps:ubuntu-latest
-    container_name: zabbixsnmptraps
     environment:
       - ZBX_HOSTNAME=zabbixagent2
       - ZBX_SERVER_HOST=zabbixserver
