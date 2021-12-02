@@ -1,8 +1,16 @@
 version: "3"
 
 networks:
-    zabbix:
-        external: false
+  zabbixnet:
+    name: zabbixnet
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.238.0/24
+
 
 services:
   # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
@@ -11,8 +19,8 @@ services:
     image: zabbix/zabbix-server-mysql:alpine-latest
     environment:
       - DB_SERVER_HOST=db
-      - MYSQL_USER=zabbix
-      - MYSQL_PASSWORD=Zabbix123!
+      - MYSQL_USER=zbx
+      - MYSQL_PASSWORD=TgIpDwX63d12
     restart: always
     volumes:
       - ./zabbixserver/alertscripts:/usr/lib/zabbix/alertscripts
@@ -29,7 +37,7 @@ services:
     volumes_from:
       - zabbixsnmptraps
     networks:
-      - zabbix
+      - zabbixnet
     depends_on:
       - db
       - zabbixsnmptraps
@@ -41,17 +49,16 @@ services:
     environment:
       - DB_SERVER_HOST=db
       - DB_SERVER_PORT=3306
-      - MYSQL_USER=zabbix
-      - MYSQL_PASSWORD=Zabbix123!
+      - MYSQL_USER=zbx
+      - MYSQL_PASSWORD=TgIpDwX63d12
       - ZBX_SERVER_HOST=zabbixserver
       - PHP_TZ="Europe/Zurich"
     restart: always
     networks:
-      - zabbix
-        #ports:
-        #- 8881:80
-        #- 8882:443
-        #- 443:443
+      - zabbixnet
+    ports:
+        - 8881:8080
+        - 8882:8443
     volumes:
       - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
       - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
@@ -68,7 +75,7 @@ services:
       - PHP_TZ="Europe/Zurich"
     restart: always
     networks:
-      - zabbix
+      - zabbixnet
     volumes:
       - ./zabbixagent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
       - ./zabbixagent2/enc:/var/lib/zabbix/enc
@@ -86,7 +93,7 @@ services:
       - PHP_TZ="Europe/Zurich"
     restart: always
     networks:
-      - zabbix
+      - zabbixnet
     ports:
       - 162:1162/udp
     volumes:
@@ -98,11 +105,11 @@ services:
     restart: always
     environment:
         - MYSQL_ROOT_PASSWORD=zabbix
-        - MYSQL_USER=zabbix
-        - MYSQL_PASSWORD=Zabbix123!
+        - MYSQL_USER=zbx
+        - MYSQL_PASSWORD=TgIpDwX63d12
         - MYSQL_DATABASE=zabbix
     networks:
-        - zabbix
+        - zabbixnet
     volumes:
         - ./mysql:/var/lib/mysql
 
@@ -114,9 +121,9 @@ services:
     environment:
       - PMA_HOST=db
       - PMA_PORT=3306
-      - PMA_USER=zabbix
-      - PMA_PASSWORD=Zabbix123!
+      - PMA_USER=zbx
+      - PMA_PASSWORD=TgIpDwX63d12
     networks:
-      - zabbix
+      - zabbixnet
     depends_on:
       - db
