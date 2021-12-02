@@ -1,0 +1,118 @@
+version: "3"
+
+networks:
+    zabbix:
+        external: false
+
+services:
+  # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
+  zabbixserver:
+    image: zabbix/zabbix-server-mysql:ubuntu-latest
+    environment:
+      - DB_SERVER_HOST=db
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=Zabbix123!
+    restart: always
+    volumes:
+      - ./zabbixserver/alertscripts:/usr/lib/zabbix/alertscripts
+      - ./zabbixserver/externalscripts:/usr/lib/zabbix/externalscripts
+      - ./zabbixserver/modules:/var/lib/zabbix/modules
+      - ./zabbixserver/enc:/var/lib/zabbix/enc
+      - ./zabbixserver/ssh_keys:/var/lib/zabbix/ssh_keys
+      - ./zabbixserver/ssl/certs:/var/lib/zabbix/ssl/certs
+      - ./zabbixserver/ssl/keys:/var/lib/zabbix/ssl/keys
+      - ./zabbixserver/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca
+      # - ./zabbixserver/snmptraps:/var/lib/zabbix/snmptraps
+      - ./zabbixserver/mibs:/var/lib/zabbix/mibs
+      - ./zabbixserver/export:/var/lib/zabbix/export
+    volumes_from:
+      - zabbixsnmptraps
+    networks:
+      - zabbix
+    depends_on:
+      - db
+      - zabbixsnmptraps
+
+  zabbixweb:
+    # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
+    image: zabbix/zabbix-web-apache-mysql:ubuntu-latest
+    environment:
+      - DB_SERVER_HOST=db
+      - DB_SERVER_PORT=3306
+      - MYSQL_USER=zabbix
+      - MYSQL_PASSWORD=Zabbix123!
+      - ZBX_SERVER_HOST=zabbixserver
+      - PHP_TZ="Europe/Zurich"
+    restart: always
+    networks:
+      - zabbix
+        #ports:
+        #- 8881:80
+        #- 8882:443
+        #- 443:443
+    volumes:
+      - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
+      - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
+    depends_on:
+      - db
+
+  zabbixagent2:
+    # https://hub.docker.com/r/zabbix/zabbix-agent2/
+    image: zabbix/zabbix-agent2:ubuntu-latest
+    environment:
+      - ZBX_HOSTNAME=zabbixagent2
+      - ZBX_SERVER_HOST=zabbixserver
+      - PHP_TZ="Europe/Zurich"
+    restart: always
+    networks:
+      - zabbix
+    volumes:
+      - ./zabbixagent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
+      - ./zabbixagent2/enc:/var/lib/zabbix/enc
+      - ./zabbixagent2/buffer:/var/lib/zabbix/buffer
+    depends_on:
+      - zabbixserver
+
+  zabbixsnmptraps:
+    # https://hub.docker.com/r/zabbix/zabbix-agent2/
+    image: zabbix/zabbix-snmptraps:ubuntu-latest
+    environment:
+      - ZBX_HOSTNAME=zabbixagent2
+      - ZBX_SERVER_HOST=zabbixserver
+      - PHP_TZ="Europe/Zurich"
+    restart: always
+    networks:
+      - zabbix
+    ports:
+      - 162:1162/udp
+    volumes:
+      - ./zabbixsnmptraps/snmptraps:/var/lib/zabbix/snmptraps
+      - ./zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
+
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+        - MYSQL_ROOT_PASSWORD=zabbix
+        - MYSQL_USER=zabbix
+        - MYSQL_PASSWORD=Zabbix123!
+        - MYSQL_DATABASE=zabbix
+    networks:
+        - zabbix
+    volumes:
+        - ./mysql:/var/lib/mysql
+
+  pma:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - 8883:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=zabbix
+      - PMA_PASSWORD=Zabbix123!
+    networks:
+      - zabbix
+    depends_on:
+      - db
