@@ -13,7 +13,6 @@ networks:
 
   backend:
     name: backend
-    # external: true
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
@@ -75,8 +74,8 @@ services:
         - 8881:8080
         - 8882:8443
     volumes:
-      - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
-      - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
+      - ./zabbixweb/ssl:/etc/ssl/apache2 # for HTTPS
+      - ./zabbixweb/certs:/etc/zabbix/web/certs # for SAML
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       - db
@@ -119,10 +118,11 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   db:
+    name: db
     image: mysql:latest
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=zabbix
+      - MYSQL_ROOT_PASSWORD=fDE6*p+dH70F
       - MYSQL_USER=zbx
       - MYSQL_PASSWORD=TgIpDwX63d12
       - MYSQL_DATABASE=zabbix
@@ -133,6 +133,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   pma:
+    name: pma
     image: phpmyadmin:latest
     restart: always
     ports:
