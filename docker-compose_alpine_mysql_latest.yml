@@ -117,36 +117,34 @@ services:
       - ./data/zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
       - /etc/localtime:/etc/localtime:ro
 
-  # db:
-  #   name: db
-  #   image: mysql:latest
-  #   restart: always
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=fDE6*p+dH70F
-  #     - MYSQL_USER=zbx
-  #     - MYSQL_PASSWORD=TgIpDwX63d12
-  #     - MYSQL_DATABASE=zabbix
-  #   networks:
-  #     - backend
-  #   volumes:
-  #     - ./data/mysql:/var/lib/mysql
-  #     - /etc/localtime:/etc/localtime:ro
-  #
-  # pma:
-  #   name: pma
-  #   image: phpmyadmin:latest
-  #   restart: always
-  #   ports:
-  #     - 8883:80
-  #   environment:
-  #     - PMA_HOST=db
-  #     - PMA_PORT=3306
-  #     - PMA_USER=zbx
-  #     - PMA_PASSWORD=TgIpDwX63d12
-  #   networks:
-  #     - zabbixnet
-  #     - backend
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #   depends_on:
-  #     - db
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=fDE6*p+dH70F
+      - MYSQL_USER=zbx
+      - MYSQL_PASSWORD=TgIpDwX63d12
+      - MYSQL_DATABASE=zabbix
+    networks:
+      - backend
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+
+  pma:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - 8883:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=zbx
+      - PMA_PASSWORD=TgIpDwX63d12
+    networks:
+      - zabbixnet
+      - backend
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - db
