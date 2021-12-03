@@ -32,17 +32,17 @@ services:
       - MYSQL_PASSWORD=TgIpDwX63d12
     restart: always
     volumes:
-      - ./zabbixserver/alertscripts:/usr/lib/zabbix/alertscripts
-      - ./zabbixserver/externalscripts:/usr/lib/zabbix/externalscripts
-      - ./zabbixserver/modules:/var/lib/zabbix/modules
-      - ./zabbixserver/enc:/var/lib/zabbix/enc
-      - ./zabbixserver/ssh_keys:/var/lib/zabbix/ssh_keys
-      - ./zabbixserver/ssl/certs:/var/lib/zabbix/ssl/certs
-      - ./zabbixserver/ssl/keys:/var/lib/zabbix/ssl/keys
-      - ./zabbixserver/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca
-      # - ./zabbixserver/snmptraps:/var/lib/zabbix/snmptraps
-      - ./zabbixserver/mibs:/var/lib/zabbix/mibs
-      - ./zabbixserver/export:/var/lib/zabbix/export
+      - ./data/zabbixserver/alertscripts:/usr/lib/zabbix/alertscripts
+      - ./data/zabbixserver/externalscripts:/usr/lib/zabbix/externalscripts
+      - ./data/zabbixserver/modules:/var/lib/zabbix/modules
+      - ./data/zabbixserver/enc:/var/lib/zabbix/enc
+      - ./data/zabbixserver/ssh_keys:/var/lib/zabbix/ssh_keys
+      - ./data/zabbixserver/ssl/certs:/var/lib/zabbix/ssl/certs
+      - ./data/zabbixserver/ssl/keys:/var/lib/zabbix/ssl/keys
+      - ./data/zabbixserver/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca
+      # - ./data/zabbixserver/snmptraps:/var/lib/zabbix/snmptraps
+      - ./data/zabbixserver/mibs:/var/lib/zabbix/mibs
+      - ./data/zabbixserver/export:/var/lib/zabbix/export
       - /etc/localtime:/etc/localtime:ro
     volumes_from:
       - zabbixsnmptraps
@@ -74,8 +74,8 @@ services:
         - 8881:8080
         - 8882:8443
     volumes:
-      - ./zabbixweb/ssl:/etc/ssl/apache2 # for HTTPS
-      - ./zabbixweb/certs:/etc/zabbix/web/certs # for SAML
+      - ./data/zabbixweb/ssl:/etc/ssl/apache2 # for HTTPS
+      - ./data/zabbixweb/certs:/etc/zabbix/web/certs # for SAML
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       - db
@@ -92,9 +92,9 @@ services:
     networks:
       - zabbixnet
     volumes:
-      - ./zabbixagent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
-      - ./zabbixagent2/enc:/var/lib/zabbix/enc
-      - ./zabbixagent2/buffer:/var/lib/zabbix/buffer
+      - ./data/zabbixagent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
+      - ./data/zabbixagent2/enc:/var/lib/zabbix/enc
+      - ./data/zabbixagent2/buffer:/var/lib/zabbix/buffer
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       - zabbixserver
@@ -113,8 +113,8 @@ services:
     ports:
       - 162:1162/udp
     volumes:
-      - ./zabbixsnmptraps/snmptraps:/var/lib/zabbix/snmptraps
-      - ./zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
+      - ./data/zabbixsnmptraps/snmptraps:/var/lib/zabbix/snmptraps
+      - ./data/zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
       - /etc/localtime:/etc/localtime:ro
 
   db:
@@ -129,7 +129,7 @@ services:
     networks:
       - backend
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
 
   pma:
