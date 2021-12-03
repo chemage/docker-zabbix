@@ -1,8 +1,8 @@
 version: "3"
 
 networks:
-  zabbixnet:
-    name: zabbixnet
+  frontend:
+    name: frontend
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
@@ -10,6 +10,17 @@ networks:
       driver: default
       config:
         - subnet: 192.168.238.0/24
+
+  backend:
+    name: backend
+    external: true
+    driver: local
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.239.0/24
 
 services:
   # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
@@ -33,6 +44,7 @@ services:
       # - ./zabbixserver/snmptraps:/var/lib/zabbix/snmptraps
       - ./zabbixserver/mibs:/var/lib/zabbix/mibs
       - ./zabbixserver/export:/var/lib/zabbix/export
+      - /etc/localtime:/etc/localtime:ro
     volumes_from:
       - zabbixsnmptraps
     networks:
@@ -63,6 +75,7 @@ services:
     volumes:
       - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
       - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       - db
 
@@ -81,6 +94,7 @@ services:
       - ./zabbixagent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
       - ./zabbixagent2/enc:/var/lib/zabbix/enc
       - ./zabbixagent2/buffer:/var/lib/zabbix/buffer
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       - zabbixserver
 
@@ -100,6 +114,7 @@ services:
     volumes:
       - ./zabbixsnmptraps/snmptraps:/var/lib/zabbix/snmptraps
       - ./zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
+      - /etc/localtime:/etc/localtime:ro
 
   db:
     image: mysql:latest
@@ -113,6 +128,7 @@ services:
         - zabbixnet
     volumes:
         - ./mysql:/var/lib/mysql
+        - /etc/localtime:/etc/localtime:ro
 
   pma:
     image: phpmyadmin:latest
@@ -126,5 +142,7 @@ services:
       - PMA_PASSWORD=TgIpDwX63d12
     networks:
       - zabbixnet
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       - db
