@@ -90,6 +90,7 @@ services:
       - ./zabbixsnmptraps/mibs:/var/lib/zabbix/mibs
 
   db:
+    build: .
     image: mariadb:latest
     restart: always
     environment:
