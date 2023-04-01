@@ -1,15 +1,18 @@
 version: "3"
 
 networks:
-    zabbix:
-        external: false
+  host-net:
+    driver: bridge
+
+  zabbix:
+    external: false
 
 services:
   # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
   zabbixserver:
     image: zabbix/zabbix-server-mysql:latest
     environment:
-      - DB_SERVER_HOST=db
+      - DB_SERVER_HOST=raspberry4.coloc.lan
       - MYSQL_USER=zabbix
       - MYSQL_PASSWORD=Zabbix123!
     restart: always
@@ -28,9 +31,9 @@ services:
     volumes_from:
       - zabbixsnmptraps
     networks:
+      - host-net
       - zabbix
     depends_on:
-      - db
       - zabbixsnmptraps
 
   zabbixweb:
@@ -45,6 +48,7 @@ services:
       - PHP_TZ="Europe/Zurich"
     restart: always
     networks:
+      - host-net
       - zabbix
         #ports:
         #- 8881:80
@@ -53,8 +57,6 @@ services:
     volumes:
       - ./zabbixdb/ssl:/etc/ssl/apache2 # for HTTPS
       - ./zabbixdb/certs:/etc/zabbix/web/certs # for SAML
-    depends_on:
-      - db
 
   zabbixagent2:
     # https://hub.docker.com/r/zabbix/zabbix-agent2/
@@ -114,6 +116,6 @@ services:
       - PMA_USER=zabbix
       - PMA_PASSWORD=Zabbix123!
     networks:
+      - host-net
       - zabbix
-    depends_on:
-      - db
+
