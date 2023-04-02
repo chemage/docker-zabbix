@@ -1,4 +1,4 @@
-version: "3"
+version: "3.5"
 
 networks:
   host-net:
@@ -16,8 +16,8 @@ services:
       - MYSQL_USER=zabbix
       - MYSQL_PASSWORD=Zabbix123!
     env_file:
-      - ./env_vars/.env_db_mysql
-      - ./env_vars/.env_srv
+      - ./env_files/.env_db_mysql
+      - ./env_files/.env_srv
     secrets:
       - MYSQL_USER
       - MYSQL_PASSWORD
@@ -50,8 +50,8 @@ services:
     # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
     image: zabbix/zabbix-web-apache-mysql:latest
     env_file:
-      - ./env_vars/.env_db_mysql
-      - ./env_vars/.env_web
+      - /dockerdata/zabbix/env_vars/.env_db_mysql
+      - /dockerdata/zabbix/env_vars/.env_web
     secrets:
       - MYSQL_USER
       - MYSQL_PASSWORD
@@ -72,20 +72,24 @@ services:
       - /dockerdata/zabbix/web/etc/ssl/apache2:/etc/ssl/apache2:ro
       - /dockerdata/zabbix/web/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
 
-  zabbixagent2:
+  zabbixagent:
     # https://hub.docker.com/r/zabbix/zabbix-agent2/
-    image: zabbix/zabbix-agent2:latest
+    image: zabbix/zabbix-agent:latest
     environment:
-      - ZBX_HOSTNAME=zabbixagent2
+      - ZBX_HOSTNAME=zabbixagent
       - ZBX_SERVER_HOST=zabbixserver
       - PHP_TZ="Europe/Zurich"
+    env_file:
+      - ./env_files/.env_agent
     restart: always
     networks:
       - zabbix
     volumes:
-      - /dockerdata/zabbix/agent2/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d
-      - /dockerdata/zabbix/agent2/enc:/var/lib/zabbix/enc
-      - /dockerdata/zabbix/agent2/buffer:/var/lib/zabbix/buffer
+      - /etc/localtime:/etc/localtime:ro
+      - /dockerdata/zabbix/agent2/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+      - /dockerdata/zabbix/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+      - /dockerdata/zabbix/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+      - /dockerdata/zabbix/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
     depends_on:
       - zabbixserver
 
@@ -93,7 +97,7 @@ services:
     # https://hub.docker.com/r/zabbix/zabbix-agent2/
     image: zabbix/zabbix-snmptraps:latest
     environment:
-      - ZBX_HOSTNAME=zabbixagent2
+      - ZBX_HOSTNAME=zabbixsnmptraps
       - ZBX_SERVER_HOST=zabbixserver
       - PHP_TZ="Europe/Zurich"
     restart: always
@@ -102,8 +106,7 @@ services:
     ports:
       - 162:1162/udp
     volumes:
-      - /dockerdata/zabbix/snmptraps/snmptraps:/var/lib/zabbix/snmptraps
-      - /dockerdata/zabbix/snmptraps/mibs:/var/lib/zabbix/mibs
+      - /dockerdata/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
 
 #db:
 #    build: .
@@ -142,4 +145,3 @@ secrets:
     file: /dockerdata/zabbix/env_vars/.MYSQL_ROOT_USER
   MYSQL_ROOT_PASSWORD:
     file: /dockerdata/zabbix/env_vars/.MYSQL_ROOT_PASSWORD
-
