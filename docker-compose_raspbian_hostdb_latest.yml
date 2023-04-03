@@ -21,7 +21,7 @@ services:
       - MYSQL_PASSWORD
       - MYSQL_ROOT_USER
       - MYSQL_ROOT_PASSWORD
-    restart: always
+    restart: false
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /dockerdata/zabbix/server/galertscripts:/usr/lib/zabbix/alertscripts
@@ -54,7 +54,7 @@ services:
     secrets:
       - MYSQL_USER
       - MYSQL_PASSWORD
-    restart: always
+    restart: false
     networks:
       - host-net
       - zabbix
@@ -71,7 +71,7 @@ services:
     image: zabbix/zabbix-agent:latest
     env_file:
       - ./env_files/.env_agent
-    restart: always
+    restart: false
     networks:
       - zabbix
     ports:
@@ -92,7 +92,7 @@ services:
       - ZBX_HOSTNAME=zabbixsnmptraps
       - ZBX_SERVER_HOST=zabbixserver
       - PHP_TZ="Europe/Zurich"
-    restart: always
+    restart: false
     networks:
       - zabbix
     ports:
@@ -104,7 +104,7 @@ services:
 #db:
 #    build: .
 #    image: mariadb:latest
-#    restart: always
+#    restart: false
 #    environment:
 #        - MARIADB_ROOT_PASSWORD=zabbix
 #        - MARIADB_USER=zabbix
@@ -118,7 +118,7 @@ services:
 
   pma:
     image: phpmyadmin:latest
-    restart: always
+    restart: false
     ports:
       - 8884:80
     environment:
