@@ -1,0 +1,7 @@
+# Setup MariaDB
+
+sudo mariadb -u root -p
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'MariaR00t!';
+FLUSH PRIVILEGES;
+quit;
