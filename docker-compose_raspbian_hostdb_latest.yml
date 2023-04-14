@@ -9,7 +9,7 @@ networks:
 
 services:
   # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
-  zabbixserver:
+  server:
     image: zabbix/zabbix-server-mysql:latest
     environment:
       - DB_SERVER_HOST=172.16.16.105
@@ -36,16 +36,16 @@ services:
       - /dockerdata/zabbix/server/gmibs:/var/lib/zabbix/mibs
       - /dockerdata/zabbix/server/gexport:/var/lib/zabbix/export
     # volumes_from:
-    #   - zabbixsnmptraps
+    #   - snmptraps
     networks:
       - host-net
       - zabbix
     ports:
       - 10051:10051
   #   depends_on:
-  #     - zabbixsnmptraps
+  #     - snmptraps
   #
-  # zabbixweb:
+  # web:
   #   # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
   #   image: zabbix/zabbix-web-apache-mysql:latest
   #   env_file:
@@ -66,7 +66,7 @@ services:
   #     - /dockerdata/zabbix/web/etc/ssl/apache2:/etc/ssl/apache2:ro
   #     - /dockerdata/zabbix/web/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
 
-  # zabbixsnmptraps:
+  # snmptraps:
   #   # https://hub.docker.com/r/zabbix/zabbix-agent2/
   #   image: zabbix/zabbix-snmptraps:latest
   #   environment:
@@ -97,7 +97,7 @@ services:
 #        - /etc/localtime:/etc/localtime:ro
 #        - /dockerdata/zabbix/db:/var/lib/mysql
 
-  zabbixagent:
+  agent:
     # https://hub.docker.com/r/zabbix/zabbix-agent2/
     image: zabbix/zabbix-agent:latest
     env_file:
@@ -114,7 +114,7 @@ services:
       - /dockerdata/zabbix/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
       - /dockerdata/zabbix/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
     depends_on:
-      - zabbixserver
+      - server
 
   pma:
     image: phpmyadmin:latest
