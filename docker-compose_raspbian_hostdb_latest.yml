@@ -21,7 +21,7 @@ services:
       - MYSQL_PASSWORD
       - MYSQL_ROOT_USER
       - MYSQL_ROOT_PASSWORD
-    restart: false
+    restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /dockerdata/zabbix/server/galertscripts:/usr/lib/zabbix/alertscripts
@@ -135,13 +135,13 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
 secrets:
-  # MYSQL_USER:
-  #   file: /dockerdata/zabbix/env_vars/.MYSQL_USER
-  # MYSQL_PASSWORD:
-  #   file: /dockerdata/zabbix/env_vars/.MYSQL_PASSWORD
-  # MYSQL_ROOT_USER:
-  #   file: /dockerdata/zabbix/env_vars/.MYSQL_ROOT_USER
-  # MYSQL_ROOT_PASSWORD:
-  #   file: /dockerdata/zabbix/env_vars/.MYSQL_ROOT_PASSWORD
+  MYSQL_USER:
+    file: /dockerdata/zabbix/env_vars/.MYSQL_USER
+  MYSQL_PASSWORD:
+    file: /dockerdata/zabbix/env_vars/.MYSQL_PASSWORD
+  MYSQL_ROOT_USER:
+    file: /dockerdata/zabbix/env_vars/.MYSQL_ROOT_USER
+  MYSQL_ROOT_PASSWORD:
+    file: /dockerdata/zabbix/env_vars/.MYSQL_ROOT_PASSWORD
   PMA_PASSWORD:
     file: /dockerdata/zabbix/env_vars/.MYSQL_PMA_PASSWORD
