@@ -1,4 +1,4 @@
-version: "3.5"
+version: "3.8"
 
 networks:
   host-net:
@@ -113,8 +113,8 @@ services:
       - /dockerdata/zabbix/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
       - /dockerdata/zabbix/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
       - /dockerdata/zabbix/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-    depends_on:
-      - zabbixserver
+#   depends_on:
+#      - zabbixserver
 
   pma:
     image: phpmyadmin:latest
@@ -127,6 +127,7 @@ services:
       - PMA_HOST=172.16.16.105
       - PMA_PORT=3306
       - PMA_USER=zabbix
+#      - PMA_PASSWORD=Z@bbix123!
     networks:
       - host-net
       - zabbix
