@@ -97,24 +97,24 @@ services:
 #        - /etc/localtime:/etc/localtime:ro
 #        - /dockerdata/zabbix/db:/var/lib/mysql
 
-zabbixagent:
-  # https://hub.docker.com/r/zabbix/zabbix-agent2/
-  image: zabbix/zabbix-agent:latest
-  env_file:
-    - ./env_files/.env_agent
-  restart: false
-  networks:
-    - zabbix
-  ports:
-    - "10050:10050"
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /dockerdata/zabbix/agent/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
-    - /dockerdata/zabbix/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-    - /dockerdata/zabbix/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-    - /dockerdata/zabbix/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-  depends_on:
-    - zabbixserver
+  zabbixagent:
+    # https://hub.docker.com/r/zabbix/zabbix-agent2/
+    image: zabbix/zabbix-agent:latest
+    env_file:
+      - ./env_files/.env_agent
+    restart: false
+    networks:
+      - zabbix
+    ports:
+      - "10050:10050"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /dockerdata/zabbix/agent/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+      - /dockerdata/zabbix/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+      - /dockerdata/zabbix/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+      - /dockerdata/zabbix/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+    depends_on:
+      - zabbixserver
 
   pma:
     image: phpmyadmin:latest
