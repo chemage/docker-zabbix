@@ -102,7 +102,7 @@ services:
     image: zabbix/zabbix-agent:latest
     env_file:
       - ./env_files/.env_agent
-    restart: false
+    restart: unless-stopped
     networks:
       - zabbix
     ports:
@@ -118,7 +118,7 @@ services:
 
   pma:
     image: phpmyadmin:latest
-    restart: false
+    restart: unless-stopped
     ports:
       - 8884:80
     secrets:
