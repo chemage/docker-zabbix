@@ -127,7 +127,7 @@ services:
       - PMA_HOST=172.16.16.105
       - PMA_PORT=3306
       - PMA_USER=zabbix
-#      - PMA_PASSWORD=Z@bbix123!
+      - PMA_PASSWORD_FILE=/run/secrets/PMA_PASSWORD
     networks:
       - host-net
       - zabbix
