@@ -3,6 +3,12 @@ version: "3.8"
 networks:
   host-net:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.48.16.0/24
+          ip_range: 172.48.16.0/24
+          gateway: 172.48.16.254
 
   zabbix:
     external: false
@@ -11,8 +17,6 @@ services:
   # https://hub.docker.com/r/zabbix/zabbix-server-mysql/
   server:
     image: zabbix/zabbix-server-mysql:latest
-    environment:
-      - DB_SERVER_HOST=172.16.16.105
     env_file:
       - ./env_files/.env_db_mysql
       - ./env_files/.env_srv
@@ -35,52 +39,52 @@ services:
       # - /dockerdata/zabbix/server/gsnmptraps:/var/lib/zabbix/snmptraps
       - /dockerdata/zabbix/server/gmibs:/var/lib/zabbix/mibs
       - /dockerdata/zabbix/server/gexport:/var/lib/zabbix/export
-    # volumes_from:
-    #   - snmptraps
+    volumes_from:
+      - snmptraps
     networks:
       - host-net
       - zabbix
     ports:
       - 10051:10051
-  #   depends_on:
-  #     - snmptraps
-  #
-  # web:
-  #   # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
-  #   image: zabbix/zabbix-web-apache-mysql:latest
-  #   env_file:
-  #     - ./env_files/.env_db_mysql
-  #     - ./env_files/.env_web
-  #   secrets:
-  #     - MYSQL_USER
-  #     - MYSQL_PASSWORD
-  #   restart: false
-  #   networks:
-  #     - host-net
-  #     - zabbix
-  #   ports:
-  #     - 8880:8080
-  #     - 8443:8443
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - /dockerdata/zabbix/web/etc/ssl/apache2:/etc/ssl/apache2:ro
-  #     - /dockerdata/zabbix/web/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+    depends_on:
+      - snmptraps
 
-  # snmptraps:
-  #   # https://hub.docker.com/r/zabbix/zabbix-agent2/
-  #   image: zabbix/zabbix-snmptraps:latest
-  #   environment:
-  #     - ZBX_HOSTNAME=zabbixsnmptraps
-  #     - ZBX_SERVER_HOST=zabbixserver
-  #     - PHP_TZ="Europe/Zurich"
-  #   restart: false
-  #   networks:
-  #     - zabbix
-  #   ports:
-  #     - 162:1162/udp
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - /dockerdata/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
+  web:
+    # https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/
+    image: zabbix/zabbix-web-apache-mysql:latest
+    env_file:
+      - ./env_files/.env_db_mysql
+      - ./env_files/.env_web
+    secrets:
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    restart: unless-stopped
+    networks:
+      - host-net
+      - zabbix
+    ports:
+      - 8880:8080
+      - 8443:8443
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /dockerdata/zabbix/web/etc/ssl/apache2:/etc/ssl/apache2:ro
+      - /dockerdata/zabbix/web/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+
+  snmptraps:
+    # https://hub.docker.com/r/zabbix/zabbix-agent2/
+    image: zabbix/zabbix-snmptraps:latest
+    environment:
+      - ZBX_HOSTNAME=snmptraps
+      - ZBX_SERVER_HOST=server
+      - PHP_TZ="Europe/Zurich"
+    restart: unless-stopped
+    networks:
+      - zabbix
+    ports:
+      - 162:1162/udp
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /dockerdata/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
 
 #db:
 #    build: .
@@ -126,7 +130,7 @@ services:
     environment:
       - PMA_HOST=172.16.16.105
       - PMA_PORT=3306
-      - PMA_USER=zabbix
+      - PMA_USER=root4zabbix
       - PMA_PASSWORD_FILE=/run/secrets/PMA_PASSWORD
     networks:
       - host-net
